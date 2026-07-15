@@ -24,21 +24,32 @@ function buildSystemPrompt(mode: string, level: string): string {
 
 ${levelInstruction}
 
-IMPORTANT INSTRUCTIONS:
-1. Reply naturally in English as the character above, matching the user's level.
-2. Keep your reply SHORT: at most 2 sentences, structured as (1) a brief reaction/acknowledgment to what the user said, then (2) a question or a new topic to keep the conversation going.
-3. After your reply, add a section called "📝 Feedback:" on a new line.
-4. In the Feedback section, focus ONLY on the content of what the user said — never mention capitalization, punctuation, or other surface-level typos:
-   - If the user's message is written in Japanese (because they didn't know how to say it in English), do NOT treat it as a mistake. Instead write "💬 英語で言うと:" followed by a natural English version of what they were trying to say.
-   - Else if the user made grammar or word-choice mistakes that affect meaning or naturalness, point them out kindly and show the corrected version.
-   - Else if the English was natural and correct, write "Great English! No mistakes found. 👍"
-   - Keep feedback brief and encouraging.
+STRICT REPLY LENGTH LIMIT (highest priority rule, never break it):
+Your in-character reply must be EXACTLY 1 or 2 sentences. NEVER 3 or more. This is a hard limit, not a suggestion.
+Structure: sentence 1 = a brief reaction/acknowledgment to what the user said. sentence 2 (optional) = one question or one new topic to keep the conversation going.
+Do not explain, list options, or add extra detail beyond those 1-2 sentences, even if the topic invites more.
 
-Format your response like this:
-[Your natural reply as the character, max 2 sentences]
+Example of a CORRECT reply: "That sounds like a fun trip! What are you most looking forward to?"
+Example of a WRONG reply (too long, do not do this): "That sounds like a fun trip! Tokyo has so much to offer, from the busy streets of Shibuya to the quiet temples in Asakusa. Are you planning to visit any famous landmarks, and do you know how long you'll be staying?"
+
+After your reply, add a section called "📝 Feedback:" on a new line. The Feedback section is NOT part of the reply and has no length limit.
+In the Feedback section, focus ONLY on the content of what the user said — never mention capitalization, punctuation, or other surface-level typos:
+- If the user's message is written in Japanese (because they didn't know how to say it in English), do NOT treat it as a mistake. Instead write "💬 英語で言うと:" followed by a natural English version of what they were trying to say.
+- Else if the user made grammar or word-choice mistakes that affect meaning or naturalness, point them out kindly and show the corrected version.
+- Else if the English was natural and correct, write "Great English! No mistakes found. 👍"
+- Keep feedback brief and encouraging.
+
+Format your response exactly like this:
+[Your in-character reply, 1-2 sentences ONLY]
 
 📝 Feedback:
 [Feedback here]`;
+}
+
+function limitToTwoSentences(text: string): string {
+  const sentences = text.match(/[^.!?]+[.!?]+(\s+|$)/g);
+  if (!sentences || sentences.length <= 2) return text.trim();
+  return sentences.slice(0, 2).join("").trim();
 }
 
 export async function POST(req: NextRequest) {
@@ -59,7 +70,13 @@ export async function POST(req: NextRequest) {
       messages,
     });
 
-    const reply = completion.choices[0]?.message?.content ?? "";
+    const fullReply = completion.choices[0]?.message?.content ?? "";
+    const feedbackMarker = "📝 Feedback:";
+    const markerIndex = fullReply.indexOf(feedbackMarker);
+    const replyPart = limitToTwoSentences(markerIndex === -1 ? fullReply : fullReply.slice(0, markerIndex));
+    const feedbackPart = markerIndex === -1 ? "" : fullReply.slice(markerIndex);
+    const reply = feedbackPart ? `${replyPart}\n\n${feedbackPart}` : replyPart;
+
     return NextResponse.json({ reply });
   } catch (error) {
     console.error(error);
