@@ -607,7 +607,7 @@ export default function Home() {
           </button>
           <textarea value={input} onChange={(e) => setInput(e.target.value)} onKeyDown={handleKeyDown}
             placeholder={listening ? "話してください..." : "Type in English... (Enter to send)"} rows={1}
-            className="flex-1 border border-gray-300 rounded-xl px-4 py-3 resize-none focus:outline-none focus:border-indigo-400 text-sm" />
+            className="flex-1 border border-gray-300 rounded-xl px-4 py-3 resize-none focus:outline-none focus:border-indigo-400 text-base bg-white text-gray-900 placeholder:text-gray-400" />
           <button onClick={sendMessage} disabled={loading || !input.trim()}
             className="bg-indigo-600 hover:bg-indigo-700 disabled:bg-gray-300 text-white rounded-xl px-5 py-3 font-semibold transition-colors">
             Send
