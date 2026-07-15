@@ -89,7 +89,8 @@ export default function Home() {
   const [showHistory, setShowHistory] = useState(false);
   const [viewingSession, setViewingSession] = useState<HistorySession | null>(null);
   const [listening, setListening] = useState(false);
-  const recognitionRef = useRef<SpeechRecognition | null>(null);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const recognitionRef = useRef<any>(null);
   const shouldListenRef = useRef(false);
   const bottomRef = useRef<HTMLDivElement>(null);
 
